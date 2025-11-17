@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.vote.name }}
+  labels:
+    {{- include "vote-app.vote.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.vote.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.vote.name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.vote.name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.vote.name }}
+        image: "{{ .Values.vote.image.repository }}:{{ .Values.vote.image.tag }}"
+        imagePullPolicy: {{ .Values.vote.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: vote
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.vote.name }}
+  labels:
+    {{- include "vote-app.vote.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.vote.service.type }}
+  ports:
+  - name: "vote-service"
+    port: {{ .Values.vote.service.port }}
+    targetPort: {{ .Values.vote.service.targetPort }}
+    nodePort: {{ .Values.vote.service.nodePort }}
+  selector:
+    app.kubernetes.io/name: {{ .Values.vote.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

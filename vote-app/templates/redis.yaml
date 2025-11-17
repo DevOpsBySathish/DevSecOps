@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.redis.name }}
+  labels:
+    {{- include "vote-app.redis.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.redis.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.redis.name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.redis.name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+      - image: "{{ .Values.redis.image.repository }}:{{ .Values.redis.image.tag }}"
+        imagePullPolicy: {{ .Values.redis.image.pullPolicy }}
+        name: redis
+        ports:
+        - containerPort: 6379
+          name: redis
+        volumeMounts:
+        - mountPath: /data
+          name: redis-data
+      volumes:
+      - name: redis-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.redis.name }}
+  labels:
+    {{- include "vote-app.redis.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  ports:
+  - name: "redis-service"
+    port: {{ .Values.redis.service.port }}
+    targetPort: {{ .Values.redis.service.targetPort }}
+  selector:
+    app.kubernetes.io/name: {{ .Values.redis.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}

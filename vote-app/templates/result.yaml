@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-{{ .Values.result.name }}
+  labels:
+    {{- include "vote-app.result.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.result.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.result.name }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ .Values.result.name }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      containers:
+      - name: {{ .Values.result.name }}
+        image: "{{ .Values.result.image.repository }}:{{ .Values.result.image.tag }}"
+        imagePullPolicy: {{ .Values.result.image.pullPolicy }}
+        ports:
+        - containerPort: 80
+          name: result
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.result.name }}
+  labels:
+    {{- include "vote-app.result.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.result.service.type }}
+  ports:
+  - name: "result-service"
+    port: {{ .Values.result.service.port }}
+    targetPort: {{ .Values.result.service.targetPort }}
+    nodePort: {{ .Values.result.service.nodePort }}
+  selector:
+    app.kubernetes.io/name: {{ .Values.result.name }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
