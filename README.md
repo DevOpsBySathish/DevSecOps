@@ -16,6 +16,40 @@ docker compose up
 
 The `vote` app will be running at [http://localhost:8080](http://localhost:8080), and the `results` will be at [http://localhost:8081](http://localhost:8081).
 
+The folder `helm-chart` contains the YAML specifications of the Voting App's services. Additionally, a Helm chart is provided for easier deployment and management of the Kubernetes manifests.
+
+### Using kubectl
+
+Run the following command to create the deployments and services. Note it will create these resources in your current namespace (`default` if you haven't changed it):
+
+```shell
+kubectl create -f k8s-specifications/
+```
+
+The `vote` web app is then available on port 31000 on each host of the cluster, the `result` web app is available on port 31001.
+
+To remove them, run:
+
+```shell
+kubectl delete -f k8s-specifications/
+```
+
+### Using Helm
+
+To deploy the app using Helm, navigate to the `helm-chart` directory and run:
+
+```shell
+helm install vote-app ./helm-chart
+```
+
+This will deploy the Voting App using the Helm chart. You can customize the deployment by modifying the `values.yaml` file in the `helm-chart` directory.
+
+To uninstall the app, run:
+
+```shell
+helm uninstall vote-app
+```
+
 Alternately, if you want to run it on a [Docker Swarm](https://docs.docker.com/engine/swarm/), first make sure you have a swarm. If you don't, run:
 
 ```shell
